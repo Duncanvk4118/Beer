@@ -42,7 +42,7 @@ function toggleLike($bier_id, $action) {
                 updateLikeCount($bier_id, 2);
                 return "Dislike verwijderd, like toegevoegd!";
             } else {
-                return "Je hebt dit bier al geliket!";
+                return "Je hebt dit biertje al geliket!";
             }
         } else {
             $stmt = $conn->prepare("INSERT INTO likes (bier_id, cookie_id, disliked) VALUES (:bier_id, :cookie_id, 0)");
