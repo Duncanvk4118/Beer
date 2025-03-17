@@ -42,3 +42,9 @@ function createUser($userName, $email, $password) {
         return true;
     }
 }
+
+function logoutUser() {
+    setcookie("cookie_id", "", time() - 3600, "/");
+    unset($_COOKIE["cookie_id"]);
+    header("Location: login.php");
+}

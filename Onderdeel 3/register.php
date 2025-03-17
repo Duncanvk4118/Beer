@@ -7,7 +7,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($_POST['email'] === $_POST['confirm_email']) {
             $result = createUser($_POST['userName'], $_POST['email'], $_POST['password']);
             if ($result) {
-                echo "User registered successfully! \n" . $result;
+                echo "User registered successfully!";
+                $user = getUser($_POST['email'], $_POST['password']);
+                if ($user) {
+                    header("Location: index.php");
+                    exit();
+                } else {
+                    $error_message = "Invalid email or password!";
+                }
             } else {
                 echo "Email already exists!";
             }

@@ -23,8 +23,17 @@ if ($_COOKIE['cookie_id']) {
     <title>Bier</title>
 </head>
 <body>
-<a href="login.php">Login</a>
-<a href="register.php">Register</a>
+<?php
+if (!$_COOKIE['cookie_id']) {
+    echo
+    '<a href="login.php">Login</a>
+    <a href="register.php">Register</a>';
+} else {
+    echo '<a href="logout.php">Logout</a>';
+}
+
+?>
+
 <table>
     <thead>
     <tr>

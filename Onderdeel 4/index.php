@@ -4,11 +4,12 @@
 include 'Middleware/cookies.php';
 include 'APIs/BeerAPI.php';
 
-// API functies
-$beerRows = getBeer();
 
-if (!$_COOKIE['cookie_id']) {
-//    navigate();
+
+if ($_COOKIE['cookie_id']) {
+    $beerRows = getBeer();
+} else {
+    header("Location: login.php");
 }
 
 ?>
