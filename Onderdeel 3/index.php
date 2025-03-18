@@ -5,11 +5,26 @@ include 'Middleware/cookies.php';
 include 'APIs/BeerAPI.php';
 
 if ($_COOKIE['cookie_id']) {
-    $beerRows = getBeer();
+    $beerRows = getBeer('test2');
 } else {
     header("Location: login.php");
 }
 
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['rating'])) {
+    $user_id = $_POST['user_id'];  // Zorg dat de user_id wordt meegestuurd
+    $bier_id = $_POST['bier_id'];
+    $rating = $_POST['rating'];
+
+    likeBeer($user_id, $bier_id, $rating);
+
+    // Vernieuw de pagina zodat de nieuwe waardering meteen zichtbaar wordt
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
+
+
+//likeBeer('test2', 1, 5);
+//getLikes('test2');
 ?>
 <!doctype html>
 <html lang="en">
@@ -27,7 +42,7 @@ if ($_COOKIE['cookie_id']) {
     <link
             rel="stylesheet"
             href="https://cdn.jsdelivr.net/npm/tw-elements/css/tw-elements.min.css" />
-
+    <link rel="stylesheet" href="Triggers.css" />
     <title>Bier</title>
 </head>
 <body>
@@ -39,8 +54,6 @@ if (!$_COOKIE['cookie_id']) {
 } else {
     echo '<a href="logout.php">Logout</a>';
 }
-
-likeBeer('test2', 2);
 ?>
 
 <div class="flex flex-col">
