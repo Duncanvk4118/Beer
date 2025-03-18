@@ -1,4 +1,4 @@
 <?php
-
-include './APIs/UserAPI.php';
-logoutUser();
+session_start();
+session_destroy();
+header("Location: index.php");

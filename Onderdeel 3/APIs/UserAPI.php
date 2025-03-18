@@ -13,7 +13,7 @@ function getUser($email, $password)
     if ($user) {
         if (password_verify($password, $user['password'])) {
 
-            setCookies($user);
+            $_SESSION["user_id"] = $user['id'];
             return $user;
         } else {
             return false;

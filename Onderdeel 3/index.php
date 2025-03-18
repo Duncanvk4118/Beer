@@ -1,11 +1,11 @@
 <?php
-
+session_start();
 // Imports
 include 'Middleware/cookies.php';
 include 'APIs/BeerAPI.php';
 
-if ($_COOKIE['cookie_id']) {
-    $beerRows = getBeer($_COOKIE['cookie_id']);
+if ($_SESSION['user_id']) {
+    $beerRows = getBeer($_SESSION['user_id']);
 } else {
     header("Location: login.php");
 }
@@ -43,7 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['rating'])) {
 </head>
 <body>
 <?php
-if (!$_COOKIE['cookie_id']) {
+if (!$_SESSION['user_id']) {
     echo
     '<a href="login.php">Login</a>
     <a href="register.php">Register</a>';
