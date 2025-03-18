@@ -9,12 +9,12 @@ $stmt_beers->execute();
 $results_beers = $stmt_beers->fetchAll(PDO::FETCH_ASSOC);
 
 $query_brewers = "
-    SELECT b.brewer, AVG(l.rating) as average_rating
-    FROM likes l
-    JOIN beers b ON l.bier_id = b.id
-    GROUP BY b.brewer
-    ORDER BY average_rating DESC
-    LIMIT 10
+SELECT b.brewer, COALESCE(AVG(l.rating), 0) as average_rating
+FROM beers b
+LEFT JOIN likes l ON l.bier_id = b.id
+GROUP BY b.brewer
+ORDER BY average_rating DESC
+LIMIT 10
 ";
 
 $stmt_brewers = $conn->prepare($query_brewers);
@@ -22,12 +22,13 @@ $stmt_brewers->execute();
 $results_brewers = $stmt_brewers->fetchAll(PDO::FETCH_ASSOC);
 
 $query_types = "
-    SELECT b.type, AVG(l.rating) as average_rating
-    FROM likes l
-    JOIN beers b ON l.bier_id = b.id
-    GROUP BY b.type
-    ORDER BY average_rating DESC
-    LIMIT 10
+    SELECT b.type, COALESCE(AVG(l.rating), 0) as average_rating
+FROM beers b
+LEFT JOIN likes l ON l.bier_id = b.id
+GROUP BY b.type
+ORDER BY average_rating DESC
+LIMIT 10
+
 ";
 $stmt_types = $conn->prepare($query_types);
 $stmt_types->execute();
@@ -53,6 +54,7 @@ $results_types = $stmt_types->fetchAll(PDO::FETCH_ASSOC);
     <title>Top Ratings</title>
 </head>
 <body>
+    <a class="p-2" href="index.php">Back to Home</a>
     <div class="flex w-[90%] mx-auto container">
         <div class="w-1/3">
             <h1 class="font-bold">Top 10 Beers</h1>
