@@ -33,6 +33,18 @@ LIMIT 10
 $stmt_types = $conn->prepare($query_types);
 $stmt_types->execute();
 $results_types = $stmt_types->fetchAll(PDO::FETCH_ASSOC);
+
+$query_beers_most_rated = "
+    SELECT b.id, b.name, COUNT(l.rating) as rating_count
+    FROM likes l
+    JOIN beers b ON l.bier_id = b.id
+    GROUP BY b.id, b.name
+    ORDER BY rating_count DESC
+    LIMIT 10
+";
+$stmt_beers_most_rated = $conn->prepare($query_beers_most_rated);
+$stmt_beers_most_rated->execute();
+$results_beers_most_rated = $stmt_beers_most_rated->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!doctype html>
@@ -56,7 +68,7 @@ $results_types = $stmt_types->fetchAll(PDO::FETCH_ASSOC);
 <body>
     <a class="p-2" href="index.php">Back to Home</a>
     <div class="flex w-[90%] mx-auto container">
-        <div class="w-1/3">
+        <div class="w-1/8 mr-10">
             <h1 class="font-bold">Top 10 Beers</h1>
             <?php
             if (count($results_beers) > 0) {
@@ -70,7 +82,7 @@ $results_types = $stmt_types->fetchAll(PDO::FETCH_ASSOC);
             }
             ?>
         </div>
-        <div class="w-1/3">
+        <div class="w-1/4 mr-10">
             <h1 class="font-bold">Top 10 Brewers</h1>
             <?php
             if (count($results_brewers) > 0) {
@@ -84,7 +96,7 @@ $results_types = $stmt_types->fetchAll(PDO::FETCH_ASSOC);
             }
             ?>
         </div>
-        <div class="w-1/3">
+        <div class="w-1/4 mr-10">
             <h1 class="font-bold">Top 10 Types</h1>
             <?php
             if (count($results_types) > 0) {
@@ -97,6 +109,20 @@ $results_types = $stmt_types->fetchAll(PDO::FETCH_ASSOC);
                 echo "<p>No results found.</p>";
             }
             ?>
-    </div>
+        </div>
+        <div class="w-1/4 mr-10">
+            <h1 class="font-bold">Top 10 Beers by Number of Ratings</h1>
+            <?php
+            if (count($results_beers_most_rated) > 0) {
+                echo "<ul>";
+                foreach ($results_beers_most_rated as $row) {
+                    echo "<li>ID: " . $row["id"] . " - Name: " . $row["name"] . " - Ratings: " . $row["rating_count"] . "</li>";
+                }
+                echo "</ul>";
+            } else {
+                echo "<p>No results found.</p>";
+            }
+            ?>
+        </div>
 </body>
 </html>

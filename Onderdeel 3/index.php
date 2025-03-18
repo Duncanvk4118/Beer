@@ -51,6 +51,9 @@ if (!$_SESSION['user_id']) {
     echo '<a href="logout.php">Logout</a>';
 }
 ?>
+<?php
+    echo '<a href="onderdeel-4.php">onderdeel 4</a>';
+?>
 
 <div class="flex flex-col">
     <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
