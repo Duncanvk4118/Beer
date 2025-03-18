@@ -1,83 +1,18 @@
 <?php
 include 'Database.php';
 
-// Vraagt de button request op
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_POST['like'])) {
-        toggleLike($_POST['bier_id'], 'like');
-    } elseif (isset($_POST['dislike'])) {
-        toggleLike($_POST['bier_id'], 'dislike');
-    }
-}
-
-function updateLikeCount($bier_id, $value) {
+function likeBeer($user_id, $bier_id) {
     $conn = connect();
-    $stmt = $conn->prepare("UPDATE beers SET like_count = like_count + :value WHERE id = :bier_id");
-    $stmt->bindParam(':value', $value, PDO::PARAM_INT);
-    $stmt->bindParam(':bier_id', $bier_id, PDO::PARAM_INT);
-    $stmt->execute();
+    $stmt = $conn->prepare("SELECT * FROM likes WHERE bier_id = :bier_id AND user_id = :user_id");
+    $stmt->execute(['bier_id' => $bier_id, 'user_id' => $user_id]);
+    $liked = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if (count($liked) > 0) {
+        echo 'Failed';
+        return false;
+    }
+    echo 'Success';
 }
 
-function toggleLike($bier_id, $action) {
-    $conn = connect();
-    $cookie_id = $_COOKIE['cookie_id'] ?? null;
-
-    if (!$cookie_id) {
-        return "Geen geldige cookie gevonden.";
-    }
-
-    // Controleer of er al een like/dislike is
-    $stmt = $conn->prepare("SELECT * FROM likes WHERE bier_id = :bier_id AND cookie_id = :cookie_id");
-    $stmt->execute(['bier_id' => $bier_id, 'cookie_id' => $cookie_id]);
-    $stmt->fetch(PDO::FETCH_ASSOC);
-    $like = $stmt->fetchAll();
-
-
-    if ($action === "like") {
-//        Like controle
-        if ($like) {
-//            Controlleert of er gedisliket is
-            if ($like[0][2] === 1) {
-                $stmt = $conn->prepare("UPDATE likes SET disliked = 0 WHERE bier_id = :bier_id AND cookie_id = :cookie_id");
-                $stmt->execute(['bier_id' => $bier_id, 'cookie_id' => $cookie_id]);
-
-                updateLikeCount($bier_id, 2);
-                return "Dislike verwijderd, like toegevoegd!";
-            } else {
-                return "Je hebt dit bier al geliket!";
-            }
-        } else {
-            $stmt = $conn->prepare("INSERT INTO likes (bier_id, cookie_id, disliked) VALUES (:bier_id, :cookie_id, 0)");
-            $stmt->execute(['bier_id' => $bier_id, 'cookie_id' => $cookie_id]);
-
-            updateLikeCount($bier_id, 1);
-            return "Like toegevoegd!";
-        }
-    } elseif ($action === "dislike") {
-//        Like controle
-        if ($like) {
-//        Controleert of er een like is
-            if ($like[0][2] === 0) {
-
-                $stmt = $conn->prepare("UPDATE likes SET disliked = 1 WHERE bier_id = :bier_id AND cookie_id = :cookie_id");
-                $stmt->execute(['bier_id' => $bier_id, 'cookie_id' => $cookie_id]);
-
-                updateLikeCount($bier_id, -2);
-                return "Like verwijderd, dislike toegevoegd!";
-            } else {
-                return "Je hebt dit bier al gedisliket!";
-            }
-        } else {
-            $stmt = $conn->prepare("INSERT INTO likes (bier_id, cookie_id, disliked) VALUES (:bier_id, :cookie_id, 1)");
-            $stmt->execute(['bier_id' => $bier_id, 'cookie_id' => $cookie_id]);
-
-            updateLikeCount($bier_id, -1);
-            return "Dislike toegevoegd!";
-        }
-    }
-}
-
-// Haal alle biertjes op en geef formulier mee
 function getBeer() {
     $conn = connect();
     $stmt = $conn->prepare("SELECT * FROM beers");
@@ -87,23 +22,26 @@ function getBeer() {
 
     $rows = "";
     foreach ($results as $beer) {
-        $rows .= "<tr>";
-        $rows .= "<td>" . htmlspecialchars($beer['name']) . "</td>";
-        $rows .= "<td>";
+        $rows .= '<tr class="border-b border-neutral-200 dark:border-white/10">';
+        $rows .= ' <td class="whitespace-nowrap  px-6 py-4 font-medium">' . htmlspecialchars($beer['name']) . '</td>';
+        $rows .= ' <td class="whitespace-nowrap  px-6 py-4">' . $beer['brewer'] . '</td>';
+        $rows .= "<td class='whitespace-nowrap  px-6 py-4''>" . ($beer['perc'] * 100) .  "%</td>";
+        $rows .= ' <td class="whitespace-nowrap  px-6 py-4">' . getAvgLikes($beer['id']) . " / 5". '</td>';
+        $rows .= '<td class="whitespace-nowrap  px-6 py-4">';
 
-        // Like-formulier
-        $rows .= "<form method='post' style='display:inline;'>";
-        $rows .= "<input type='hidden' name='bier_id' value='" . $beer['id'] . "'>";
-        $rows .= "<button type='submit' name='like'>Like</button>";
-        $rows .= "</form>";
-
-        $rows .= $beer['like_count']; // Weergeeft het aantal likes
-
-        // Dislike-formulier
-        $rows .= "<form method='post' style='display:inline;'>";
-        $rows .= "<input type='hidden' name='bier_id' value='" . $beer['id'] . "'>";
-        $rows .= "<button type='submit' name='dislike'>Dislike</button>";
-        $rows .= "</form>";
+        for ($i = 1; $i <= 5; $i++) {
+            $rows .= "<form method='post' style='display:inline;'>";
+            $rows .= "<input type='hidden' name='bier_id' value='" . $beer['id'] . "'>";
+            $rows .= '<button
+              type="submit"
+              value=' . $i .'
+              data-twe-ripple-init
+              data-twe-ripple-color="light"
+              class="inline-block rounded-full bg-gray-400 p-2 uppercase leading-normal text-white transition duration-150 ease-in-out hover:bg-amber-500 focus:bg-amber-500 focus:outline-none focus:ring-0 active:bg-amber-600 motion-reduce:transition-none dark:shadow-black/30 dark:hover:shadow-dark-strong dark:focus:shadow-dark-strong dark:active:shadow-dark-strong mx-1">
+              <svg class="flex items-center justify-center" xmlns="http://www.w3.org/2000/svg" fill="white" width="20" height="20" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"/></svg>
+            </button>';
+            $rows .= "</form>";
+        }
 
         $rows .= "</td>";
         $rows .= "</tr>";
@@ -111,3 +49,24 @@ function getBeer() {
     return $rows;
 }
 
+function getAvgLikes($bier_id) {
+    $conn = connect();
+    $stmt = $conn->prepare("SELECT * FROM likes WHERE bier_id = :bier_id");
+    $stmt->execute(['bier_id' => $bier_id]);
+    $likes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $uniqueLikes = count($likes);
+    $totalLikes = 0;
+
+    // Loop through all the rows
+    foreach ($likes as $like) {
+        $totalLikes += $like['rating'];
+    }
+
+    if ($uniqueLikes > 0) {
+        $avgRating = $totalLikes / $uniqueLikes;
+    } else {
+        $avgRating = 0;
+    }
+
+    return round($avgRating, 1);
+}
