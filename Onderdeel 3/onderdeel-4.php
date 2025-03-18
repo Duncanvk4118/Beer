@@ -16,9 +16,22 @@ $query_brewers = "
     ORDER BY average_rating DESC
     LIMIT 10
 ";
+
 $stmt_brewers = $conn->prepare($query_brewers);
 $stmt_brewers->execute();
 $results_brewers = $stmt_brewers->fetchAll(PDO::FETCH_ASSOC);
+
+$query_types = "
+    SELECT b.type, AVG(l.rating) as average_rating
+    FROM likes l
+    JOIN beers b ON l.bier_id = b.id
+    GROUP BY b.type
+    ORDER BY average_rating DESC
+    LIMIT 10
+";
+$stmt_types = $conn->prepare($query_types);
+$stmt_types->execute();
+$results_types = $stmt_types->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!doctype html>
@@ -41,7 +54,7 @@ $results_brewers = $stmt_brewers->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body>
     <div class="flex w-[90%] mx-auto container">
-        <div class="w-1/2">
+        <div class="w-1/3">
             <h1 class="font-bold">Top 10 Beers</h1>
             <?php
             if (count($results_beers) > 0) {
@@ -55,7 +68,7 @@ $results_brewers = $stmt_brewers->fetchAll(PDO::FETCH_ASSOC);
             }
             ?>
         </div>
-        <div class="w-1/2">
+        <div class="w-1/3">
             <h1 class="font-bold">Top 10 Brewers</h1>
             <?php
             if (count($results_brewers) > 0) {
@@ -69,6 +82,19 @@ $results_brewers = $stmt_brewers->fetchAll(PDO::FETCH_ASSOC);
             }
             ?>
         </div>
+        <div class="w-1/3">
+            <h1 class="font-bold">Top 10 Types</h1>
+            <?php
+            if (count($results_types) > 0) {
+                echo "<ul>";
+                foreach ($results_types as $row) {
+                    echo "<li>Type: " . $row["type"] . " - Average Rating: " . $row["average_rating"] . "</li>";
+                }
+                echo "</ul>";
+            } else {
+                echo "<p>No results found.</p>";
+            }
+            ?>
     </div>
 </body>
 </html>
